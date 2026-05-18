@@ -16,6 +16,7 @@ const DB_HOST = 'sql12.freesqldatabase.com';
 const DB_NAME = 'sql12827255';
 const DB_USER = 'sql12827255';
 const DB_PASS = '1Jnbj9VwnI';
+const DB_CHARSET = 'utf8mb4';
 
 // File uploads
 const UPLOAD_DIR_PLAYERS = __DIR__ . '/uploads/players';
