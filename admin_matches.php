@@ -73,22 +73,29 @@ if (is_organizer_user()) {
 }
 
 if (is_organizer_user()) {
-    $oid = organizer_owner_user_id();
+
     $st = $pdo->prepare("
-      SELECT m.*, p.full_name AS mom_name, tm.tournament_name,
+      SELECT m.*, 
+             p.full_name AS mom_name,
+             tm.tournament_name,
              ta.team_name AS team_a_name,
              tb.team_name AS team_b_name
       FROM matches m
-      LEFT JOIN players p ON p.id = m.man_of_match_player_id
-      LEFT JOIN tournaments tm ON tm.id = m.tournament_id
-      LEFT JOIN teams ta ON ta.id = m.team_a_id
-      LEFT JOIN teams tb ON tb.id = m.team_b_id
-      WHERE m.owner_user_id = :o
+      LEFT JOIN players p 
+             ON p.id = m.man_of_match_player_id
+      LEFT JOIN tournaments tm 
+             ON tm.id = m.tournament_id
+      LEFT JOIN teams ta 
+             ON ta.id = m.team_a_id
+      LEFT JOIN teams tb 
+             ON tb.id = m.team_b_id
       ORDER BY m.match_date DESC, m.id DESC
     ");
-    $st->execute([':o' => $oid]);
+
+    $st->execute();
+
     $matches = $st->fetchAll();
-} else {
+}else {    $matches = $st->fetchAll();
     $matches = $pdo->query("
       SELECT m.*, p.full_name AS mom_name, tm.tournament_name,
              ta.team_name AS team_a_name,
