@@ -16,47 +16,33 @@ $mc = 0;
 try {
 
     // Tournament Count
-    if ($uid !== null) {
+    $st = $pdo->query("
+        SELECT COUNT(*) AS c
+        FROM tournaments
+    ");
 
-        $st = $pdo->prepare("
-            SELECT COUNT(*) AS c
-            FROM tournaments
-            WHERE owner_user_id = :u
-        ");
+    $row = $st->fetch(PDO::FETCH_ASSOC);
 
-        $st->execute([
-            ':u' => $uid
-        ]);
+    if ($row) {
+        $tc = (int)$row['c'];
+    }
 
-        $row = $st->fetch(PDO::FETCH_ASSOC);
+    // Match Count
+    $st = $pdo->query("
+        SELECT COUNT(*) AS c
+        FROM matches
+    ");
 
-        if ($row) {
-            $tc = (int)$row['c'];
-        }
+    $row = $st->fetch(PDO::FETCH_ASSOC);
 
-        // Match Count
-        $st = $pdo->prepare("
-            SELECT COUNT(*) AS c
-            FROM matches
-            WHERE owner_user_id = :u
-        ");
-
-        $st->execute([
-            ':u' => $uid
-        ]);
-
-        $row = $st->fetch(PDO::FETCH_ASSOC);
-
-        if ($row) {
-            $mc = (int)$row['c'];
-        }
+    if ($row) {
+        $mc = (int)$row['c'];
     }
 
 } catch (PDOException $e) {
 
-    die("Database Error: " . $e->getMessage());
+    die('Database Error: ' . $e->getMessage());
 }
-
 require_once __DIR__ . '/header.php';
 ?>
 
