@@ -15,8 +15,6 @@ require_admin();
   <a href="live_score_board.php">Live Scoreboards</a>
   <a href="admin_leaderboard.php">Leaderboard</a>
 
-  <div class="mb-2 mt-4 fw-bold">Match Scoring</div>
-  <a href="admin/scoring/setup.php"><i class="fas fa-cog"></i> Match Setup</a>
-  <a href="admin/scoring/live_scoring.php"><i class="fas fa-broadcast-tower"></i> Live Scoring</a>
+  
 </aside>
 

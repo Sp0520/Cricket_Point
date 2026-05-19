@@ -1,9 +1,4 @@
--- Cricket Tournament (Player Points) - MySQL schema
-CREATE DATABASE IF NOT EXISTS cricket_points
-  DEFAULT CHARACTER SET utf8mb4
-  DEFAULT COLLATE utf8mb4_unicode_ci;
 
-USE cricket_points;
 
 -- Reset existing schema to avoid "foreign key constraint is incorrectly formed"
 -- errors when re-importing into a partially/previously created database.
@@ -24,7 +19,8 @@ CREATE TABLE IF NOT EXISTS players (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT,
   full_name VARCHAR(160) NOT NULL,
   photo_path VARCHAR(255) NULL,
-  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+updated_at TIMESTAMP NULL DEFAULT NULL
   PRIMARY KEY (id),
   KEY idx_players_name (full_name)
 ) ENGINE=InnoDB;
@@ -59,7 +55,7 @@ CREATE TABLE IF NOT EXISTS otp_verifications (
   otp_hash VARCHAR(255) NOT NULL,
   attempts INT UNSIGNED NOT NULL DEFAULT 0,
   max_attempts TINYINT UNSIGNED NOT NULL DEFAULT 3,
-  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  created_at DATETIME NOT NULL,
   expires_at DATETIME NOT NULL,
   last_sent_at DATETIME NOT NULL,
   verified_at DATETIME DEFAULT NULL,
