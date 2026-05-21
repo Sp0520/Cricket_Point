@@ -52,17 +52,17 @@ $counts = [
       <h5 class="fw-bold mb-3">Live Match Scoring System</h5>
       <div class="row g-3">
         <div class="col-md-6">
-          <div class="cp-card p-4 border-0 bg-light">
+          <div class="cp-card p-4 border-0 bg-black text-white">
             <div class="fw-bold mb-2"><i class="fas fa-cog"></i> Match Setup</div>
             <p class="small cp-muted mb-3">Configure batting/bowling teams and select players for match.</p>
-            <a class="btn btn-sm btn-primary" href="admin/scoring/setup.php">Go to Setup</a>
+          
           </div>
         </div>
         <div class="col-md-6">
-          <div class="cp-card p-4 border-0 bg-light">
+          <div class="cp-card p-4 border-0 bg-black text-white">
             <div class="fw-bold mb-2"><i class="fas fa-broadcast-tower"></i> Live Scoring</div>
             <p class="small cp-muted mb-3">Record ball-by-ball scoring with automatic fantasy points calculation.</p>
-            <a class="btn btn-sm btn-danger" href="admin/scoring/live_scoring.php">Start Scoring</a>
+            
           </div>
         </div>
       </div>
