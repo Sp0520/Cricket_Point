@@ -4,10 +4,10 @@ declare(strict_types=1);
 const APP_NAME = 'Cricket Points';
 const DEFAULT_APP_WEB_BASE = '';
 
-const DEFAULT_DB_HOST = '';
-const DEFAULT_DB_NAME = '';
-const DEFAULT_DB_USER = '';
-const DEFAULT_DB_PASS = '';
+const DEFAULT_DB_HOST = 'sql12.freesqldatabase.com';
+const DEFAULT_DB_NAME = 'sql12827255';
+const DEFAULT_DB_USER = 'sql12827255';
+const DEFAULT_DB_PASS = '1Jnbj9VwnI';
 const DEFAULT_DB_CHARSET = 'utf8mb4';
 
 // File uploads
