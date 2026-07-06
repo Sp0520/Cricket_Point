@@ -22,7 +22,31 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
 function env(string $key, ?string $default = null): ?string
 {
     $value = getenv($key);
-    return $value === false ? $default : $value;
+    if ($value !== false && $value !== '') {
+        return $value;
+    }
+
+    if (isset($_SERVER[$key]) && $_SERVER[$key] !== '') {
+        return $_SERVER[$key];
+    }
+
+    if (isset($_ENV[$key]) && $_ENV[$key] !== '') {
+        return $_ENV[$key];
+    }
+
+    return $default;
+}
+
+function env_any(array $keys, ?string $default = null): ?string
+{
+    foreach ($keys as $key) {
+        $value = env($key);
+        if ($value !== null && $value !== '') {
+            return $value;
+        }
+    }
+
+    return $default;
 }
 
 function parse_database_url(string $databaseUrl): array
@@ -50,7 +74,14 @@ function db(): PDO
         return $pdo;
     }
 
-    $dbUrl = env('DATABASE_URL', env('MYSQL_URL', env('CLEARDB_DATABASE_URL', '')));
+    $dbUrl = env_any([
+        'DATABASE_URL',
+        'MYSQL_URL',
+        'CLEARDB_DATABASE_URL',
+        'DB_URL',
+        'RENDER_DATABASE_URL',
+    ], '');
+
     if ($dbUrl !== '') {
         $parsed = parse_database_url($dbUrl);
         if ($parsed !== []) {
@@ -64,12 +95,12 @@ function db(): PDO
     }
 
     if (!isset($host)) {
-        $host = env('DB_HOST', DEFAULT_DB_HOST);
-        $name = env('DB_NAME', DEFAULT_DB_NAME);
-        $user = env('DB_USER', DEFAULT_DB_USER);
-        $pass = env('DB_PASS', DEFAULT_DB_PASS);
-        $charset = env('DB_CHARSET', DEFAULT_DB_CHARSET);
-        $port = env('DB_PORT');
+        $host = env_any(['DB_HOST'], DEFAULT_DB_HOST);
+        $name = env_any(['DB_NAME'], DEFAULT_DB_NAME);
+        $user = env_any(['DB_USER'], DEFAULT_DB_USER);
+        $pass = env_any(['DB_PASS'], DEFAULT_DB_PASS);
+        $charset = env_any(['DB_CHARSET'], DEFAULT_DB_CHARSET);
+        $port = env_any(['DB_PORT'], '');
     }
 
     if ($host === '' || $name === '' || $user === '' || $pass === '') {
