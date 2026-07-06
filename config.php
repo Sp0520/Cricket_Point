@@ -25,6 +25,23 @@ function env(string $key, ?string $default = null): ?string
     return $value === false ? $default : $value;
 }
 
+function parse_database_url(string $databaseUrl): array
+{
+    $parts = parse_url($databaseUrl);
+    if ($parts === false || !isset($parts['scheme'], $parts['host'], $parts['user'], $parts['pass'], $parts['path'])) {
+        return [];
+    }
+
+    return [
+        'host' => $parts['host'],
+        'name' => ltrim($parts['path'], '/'),
+        'user' => $parts['user'],
+        'pass' => $parts['pass'],
+        'port' => isset($parts['port']) ? (string)$parts['port'] : '',
+        'charset' => env('DB_CHARSET', DEFAULT_DB_CHARSET),
+    ];
+}
+
 function db(): PDO
 {
     static $pdo = null;
@@ -33,16 +50,31 @@ function db(): PDO
         return $pdo;
     }
 
-    $host = env('DB_HOST', DEFAULT_DB_HOST);
-    $name = env('DB_NAME', DEFAULT_DB_NAME);
-    $user = env('DB_USER', DEFAULT_DB_USER);
-    $pass = env('DB_PASS', DEFAULT_DB_PASS);
-    $charset = env('DB_CHARSET', DEFAULT_DB_CHARSET);
-    $port = env('DB_PORT');
+    $dbUrl = env('DATABASE_URL', env('MYSQL_URL', env('CLEARDB_DATABASE_URL', '')));
+    if ($dbUrl !== '') {
+        $parsed = parse_database_url($dbUrl);
+        if ($parsed !== []) {
+            $host = $parsed['host'];
+            $name = $parsed['name'];
+            $user = $parsed['user'];
+            $pass = $parsed['pass'];
+            $charset = $parsed['charset'];
+            $port = $parsed['port'];
+        }
+    }
+
+    if (!isset($host)) {
+        $host = env('DB_HOST', DEFAULT_DB_HOST);
+        $name = env('DB_NAME', DEFAULT_DB_NAME);
+        $user = env('DB_USER', DEFAULT_DB_USER);
+        $pass = env('DB_PASS', DEFAULT_DB_PASS);
+        $charset = env('DB_CHARSET', DEFAULT_DB_CHARSET);
+        $port = env('DB_PORT');
+    }
 
     if ($host === '' || $name === '' || $user === '' || $pass === '') {
         throw new RuntimeException(
-            'Database configuration is missing. Please set DB_HOST, DB_NAME, DB_USER, and DB_PASS in your Render environment variables.'
+            'Database configuration is missing. Please set DB_HOST, DB_NAME, DB_USER, and DB_PASS or provide DATABASE_URL in Render environment variables.'
         );
     }
 
