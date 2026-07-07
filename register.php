@@ -94,8 +94,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             header('Location: ' . url_for('otp_verify.php'));
             exit;
         } catch (Throwable $e) {
+          if ($pdo->inTransaction()) {
             $pdo->rollBack();
-            $err = $e->getMessage();
+          }
+          $err = $e->getMessage();
         }
     }
 }
