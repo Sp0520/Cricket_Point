@@ -19,6 +19,50 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
     session_start();
 }
 
+// Load local .env file (if present) into environment variables
+function load_dotenv(string $path): void
+{
+    if (!is_file($path)) {
+        return;
+    }
+
+    $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        $line = trim($line);
+        if ($line === '' || $line[0] === '#') {
+            continue;
+        }
+
+        if (strpos($line, '=') === false) {
+            continue;
+        }
+
+        [$key, $val] = explode('=', $line, 2);
+        $key = trim($key);
+        $val = trim($val);
+
+        // Unquote value if quoted
+        if ((strlen($val) >= 2) && (($val[0] === '"' && substr($val, -1) === '"') || ($val[0] === "'" && substr($val, -1) === "'"))) {
+            $val = substr($val, 1, -1);
+        }
+
+        if (getenv($key) === false) {
+            putenv(sprintf('%s=%s', $key, $val));
+        }
+
+        if (!isset($_ENV[$key])) {
+            $_ENV[$key] = $val;
+        }
+
+        if (!isset($_SERVER[$key])) {
+            $_SERVER[$key] = $val;
+        }
+    }
+}
+
+// Attempt to load a .env file from the project root
+load_dotenv(__DIR__ . '/.env');
+
 function env(string $key, ?string $default = null): ?string
 {
     $value = getenv($key);
