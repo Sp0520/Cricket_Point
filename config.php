@@ -52,15 +52,15 @@ function env_any(array $keys, ?string $default = null): ?string
 function parse_database_url(string $databaseUrl): array
 {
     $parts = parse_url($databaseUrl);
-    if ($parts === false || !isset($parts['scheme'], $parts['host'], $parts['user'], $parts['pass'], $parts['path'])) {
+    if ($parts === false || !isset($parts['scheme'], $parts['host'])) {
         return [];
     }
 
     return [
         'host' => $parts['host'],
-        'name' => ltrim($parts['path'], '/'),
-        'user' => $parts['user'],
-        'pass' => $parts['pass'],
+        'name' => isset($parts['path']) ? ltrim($parts['path'], '/') : '',
+        'user' => isset($parts['user']) ? $parts['user'] : '',
+        'pass' => isset($parts['pass']) ? $parts['pass'] : '',
         'port' => isset($parts['port']) ? (string)$parts['port'] : '',
         'charset' => env('DB_CHARSET', DEFAULT_DB_CHARSET),
     ];
@@ -73,6 +73,17 @@ function db(): PDO
     if ($pdo instanceof PDO) {
         return $pdo;
     }
+
+    if (!extension_loaded('pdo_mysql')) {
+        throw new RuntimeException('PDO MySQL extension is not available. Please enable pdo_mysql in PHP.');
+    }
+
+    $host = '';
+    $name = '';
+    $user = '';
+    $pass = '';
+    $charset = env_any(['DB_CHARSET'], DEFAULT_DB_CHARSET);
+    $port = env_any(['DB_PORT'], '');
 
     $dbUrl = env_any([
         'DATABASE_URL',
@@ -89,18 +100,16 @@ function db(): PDO
             $name = $parsed['name'];
             $user = $parsed['user'];
             $pass = $parsed['pass'];
-            $charset = $parsed['charset'];
+            $charset = $parsed['charset'] !== '' ? $parsed['charset'] : $charset;
             $port = $parsed['port'];
         }
     }
 
-    if (!isset($host)) {
-        $host = env_any(['DB_HOST'], DEFAULT_DB_HOST);
-        $name = env_any(['DB_NAME'], DEFAULT_DB_NAME);
-        $user = env_any(['DB_USER'], DEFAULT_DB_USER);
-        $pass = env_any(['DB_PASS'], DEFAULT_DB_PASS);
-        $charset = env_any(['DB_CHARSET'], DEFAULT_DB_CHARSET);
-        $port = env_any(['DB_PORT'], '');
+    if ($host === '') {
+        $host = env_any(['DB_HOST', 'MYSQL_HOST'], DEFAULT_DB_HOST);
+        $name = env_any(['DB_NAME', 'DB_DATABASE'], DEFAULT_DB_NAME);
+        $user = env_any(['DB_USER', 'DB_USERNAME'], DEFAULT_DB_USER);
+        $pass = env_any(['DB_PASS', 'DB_PASSWORD'], DEFAULT_DB_PASS);
     }
 
     if ($host === '' || $name === '' || $user === '' || $pass === '') {
@@ -114,10 +123,15 @@ function db(): PDO
         $dsn .= ';port=' . $port;
     }
 
-    $pdo = new PDO($dsn, $user, $pass, [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-    ]);
+    try {
+        $pdo = new PDO($dsn, $user, $pass, [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::ATTR_EMULATE_PREPARES => false,
+        ]);
+    } catch (PDOException $e) {
+        throw new RuntimeException('Database connection failed: ' . $e->getMessage(), 0, $e);
+    }
 
     return $pdo;
 }

@@ -1,6 +1,10 @@
 <?php
 declare(strict_types=1);
 
+if (!function_exists('db')) {
+    require_once dirname(__DIR__) . '/config.php';
+}
+
 /**
  * Cricket Database Utility Functions
  * Handles all cricket-specific database operations
