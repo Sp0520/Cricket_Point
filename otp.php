@@ -3,6 +3,44 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/config.php';
 
+// Ensure OTP table exists in the database. In some deployments the schema
+// may not have been imported; create the table if missing so OTP features
+// degrade more gracefully instead of raising a fatal PDO exception.
+function ensure_otp_table_exists(): void
+{
+    $pdo = db();
+    $sql = <<<'SQL'
+    CREATE TABLE IF NOT EXISTS otp_verifications (
+      id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+      user_id INT UNSIGNED NULL,
+      email VARCHAR(190) NULL,
+      phone VARCHAR(32) NULL,
+      purpose ENUM('registration','login') NOT NULL DEFAULT 'registration',
+      otp_hash VARCHAR(255) NOT NULL,
+      attempts INT UNSIGNED NOT NULL DEFAULT 0,
+      max_attempts TINYINT UNSIGNED NOT NULL DEFAULT 3,
+      created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      expires_at DATETIME NOT NULL,
+      last_sent_at DATETIME NOT NULL,
+      verified_at DATETIME DEFAULT NULL,
+      PRIMARY KEY (id),
+      KEY idx_otp_user (user_id),
+      KEY idx_otp_email (email),
+      KEY idx_otp_phone (phone)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    SQL;
+
+    try {
+        $pdo->exec($sql);
+    } catch (Throwable $e) {
+        // If creation fails (permissions, engine unsupported, etc.) we silently
+        // ignore so the calling code can fall back to session-based OTP in dev.
+    }
+}
+
+// Ensure the table exists immediately when this file is loaded.
+ensure_otp_table_exists();
+
 function generate_otp_code(): string
 {
     return str_pad((string)random_int(0, 999999), 6, '0', STR_PAD_LEFT);
