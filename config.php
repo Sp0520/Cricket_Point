@@ -63,6 +63,14 @@ function load_dotenv(string $path): void
 // Attempt to load a .env file from the project root
 load_dotenv(__DIR__ . '/.env');
 
+// If present, load a local PHP config file that can set environment variables.
+// This is useful on hosts that don't allow a .env file; create `config.local.php`
+// and set values using `putenv()` or `$_ENV`/`$_SERVER` assignments.
+$localCfg = __DIR__ . '/config.local.php';
+if (is_file($localCfg)) {
+    require $localCfg;
+}
+
 function env(string $key, ?string $default = null): ?string
 {
     $value = getenv($key);
