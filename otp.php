@@ -187,7 +187,8 @@ function send_user_otp(array $userRow, string $purpose = 'registration'): bool
     }
 
     // Developer mode fallback (local testing when SMS/email is not configured)
-    $isLocal = true;
+    $isLocal = ($_SERVER['SERVER_NAME'] === 'localhost'
+    || $_SERVER['SERVER_NAME'] === '127.0.0.1');
     if (!$sent && $isLocal) {
         $_SESSION['otp_debug'] = ['user_id' => $userId, 'purpose' => $purpose, 'otp' => $otp];
         return true;
@@ -212,7 +213,7 @@ function verify_otp(string $userInput, int $userId, string $purpose = 'registrat
     $now = new DateTimeImmutable('now', new DateTimeZone('UTC'));
     if ($now > $expires) {
         // expired: clear and return a message
-        db()->prepare('DELETE FROM otp_verifications WHERE id = :id')->execute([':id' => $record['id']]);
+        db()->prepare('UPDATE otp_verifications SET verified_at = UTC_TIMESTAMP() WHERE id = :id');
         return ['ok' => false, 'message' => 'OTP expired. Please request a new code.'];
     }
 
