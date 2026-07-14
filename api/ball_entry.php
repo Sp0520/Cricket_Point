@@ -53,6 +53,10 @@ try {
             update_striker_info($match_id, $innings);
             break;
 
+        case 'update_field_setup':
+            update_field_setup($match_id);
+            break;
+
         case 'wicket_details':
             record_wicket_ball($match_id, $innings);
             break;
@@ -582,3 +586,15 @@ function update_striker_info(int $match_id, int $innings): void
         ]);
     }
 }
+
+/**
+ * Update the field setup for a match
+ */
+function update_field_setup(int $match_id): void
+{
+    $pdo = db();
+    $field_setup = $_POST['field_setup'] ?? 'normal';
+    $st = $pdo->prepare("UPDATE matches SET field_setup = :field_setup WHERE id = :match_id");
+    $st->execute([':field_setup' => $field_setup, ':match_id' => $match_id]);
+}
+

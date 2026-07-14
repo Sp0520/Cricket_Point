@@ -195,6 +195,39 @@ require_once __DIR__ . '/../../header.php';
                 <div id="ballMessage" class="alert alert-info small d-none" role="alert"></div>
                 <div id="ballError" class="alert alert-danger small d-none" role="alert"></div>
             </div>
+
+            <!-- Field Setup Card -->
+            <div class="cp-card p-3 mb-3">
+                <h4 class="fw-bold mb-3">
+                    <i class="fas fa-users-cog"></i> Live Field Setup
+                </h4>
+                <div class="mb-3">
+                    <label class="form-label small d-block">Current Fielder Preset</label>
+                    <div class="btn-group w-100" role="group">
+                        <input type="radio" class="btn-check" name="fieldSetup" id="setupNormal" value="normal" checked autocomplete="off" onchange="changeFieldSetup('normal')">
+                        <label class="btn btn-outline-success btn-sm px-1" for="setupNormal">Normal</label>
+
+                        <input type="radio" class="btn-check" name="fieldSetup" id="setupPowerplay" value="powerplay" autocomplete="off" onchange="changeFieldSetup('powerplay')">
+                        <label class="btn btn-outline-success btn-sm px-1" for="setupPowerplay">P-play</label>
+
+                        <input type="radio" class="btn-check" name="fieldSetup" id="setupDefensive" value="defensive" autocomplete="off" onchange="changeFieldSetup('defensive')">
+                        <label class="btn btn-outline-success btn-sm px-1" for="setupDefensive">Defend</label>
+
+                        <input type="radio" class="btn-check" name="fieldSetup" id="setupAttacking" value="attacking" autocomplete="off" onchange="changeFieldSetup('attacking')">
+                        <label class="btn btn-outline-success btn-sm px-1" for="setupAttacking">Attack</label>
+
+                        <input type="radio" class="btn-check" name="fieldSetup" id="setupCustom" value="custom" autocomplete="off" onchange="changeFieldSetup('custom')">
+                        <label class="btn btn-outline-success btn-sm px-1" for="setupCustom">Custom</label>
+                    </div>
+                </div>
+                <!-- 3D Mini Preview -->
+                <div class="field-preview-container position-relative rounded bg-dark border border-secondary" style="height: 250px; overflow: hidden; background-color: #05070a !important;">
+                    <div id="fieldPreview3d" style="width: 100%; height: 100%;"></div>
+                    <div class="position-absolute top-0 start-0 m-2 p-1 bg-dark bg-opacity-75 rounded text-white small" style="pointer-events: none; font-size: 0.75rem;">
+                        Field Preview (3D View)
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Right Column: Stats -->
@@ -377,13 +410,26 @@ require_once __DIR__ . '/../../header.php';
 }
 </style>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script src="<?= h(url_for('js/cricket_field.js')) ?>"></script>
+
 <script>
 const matchId = <?= $match_id ?>;
 const innings = <?= $innings ?>;
 let wicketModal;
+let field3d;
 
 document.addEventListener('DOMContentLoaded', function() {
     wicketModal = new bootstrap.Modal(document.getElementById('wicketModal'));
+    
+    try {
+        field3d = new CricketField3D('fieldPreview3d', { isInteractive: true, isMini: true });
+    } catch(e) {
+        console.error("Three.js Init failed:", e);
+    }
+    
     refreshScoreboard();
     setInterval(refreshScoreboard, 2000); // Refresh every 2 seconds
 
@@ -580,10 +626,42 @@ function refreshScoreboard() {
                 timeline.appendChild(dot);
             });
 
+            // Update 3D preview
+            if (field3d) {
+                field3d.updateState(data);
+            }
+
+            // Sync Field Setup preset selector
+            const setupVal = data.field_setup || 'normal';
+            const radio = document.querySelector(`input[name="fieldSetup"][value="${setupVal}"]`);
+            if (radio) {
+                radio.checked = true;
+            }
+
             // Update activity log
             updateActivityLog(data);
         })
         .catch(e => console.error('Refresh error:', e));
+}
+
+function changeFieldSetup(setup) {
+    const formData = new FormData();
+    formData.append('action', 'update_field_setup');
+    formData.append('match_id', matchId);
+    formData.append('innings', innings);
+    formData.append('field_setup', setup);
+
+    fetch('/api/ball_entry.php', { method: 'POST', body: formData })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                showMessage('Field setup updated to ' + setup);
+                refreshScoreboard();
+            } else {
+                showError(data.error);
+            }
+        })
+        .catch(e => showError('Network error'));
 }
 
 function updateActivityLog(data) {

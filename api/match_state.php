@@ -43,11 +43,103 @@ try {
         $runRate = $totalOvers > 0 ? round((int)$score['total_runs'] / $totalOvers, 2) : 0;
     }
 
+    // Get all balls history for graphs and last ball details
+    $stHistory = $pdo->prepare("
+        SELECT id, over_number, ball_number, runs_off_bat, extras, extra_type, total_runs, is_wicket, wicket_type
+        FROM ball_by_ball
+        WHERE match_id = :match_id AND innings = :innings
+        ORDER BY id ASC
+    ");
+    $stHistory->execute([':match_id' => $match_id, ':innings' => $innings]);
+    $historyBalls = $stHistory->fetchAll() ?: [];
+
+    $lastBall = count($historyBalls) > 0 ? $historyBalls[count($historyBalls) - 1] : null;
+    $lastBallDetails = null;
+    if ($lastBall) {
+        $lastBallDetails = [
+            'id' => (int)$lastBall['id'],
+            'over' => (int)$lastBall['over_number'],
+            'ball' => (int)$lastBall['ball_number'],
+            'runs' => (int)$lastBall['runs_off_bat'],
+            'extras' => (int)$lastBall['extras'],
+            'extra_type' => $lastBall['extra_type'],
+            'total_runs' => (int)$lastBall['total_runs'],
+            'is_wicket' => (bool)$lastBall['is_wicket'],
+            'wicket_type' => $lastBall['wicket_type']
+        ];
+    }
+
+    $cumulativeRuns = 0;
+    $cumulativeWickets = 0;
+    $graphData = [];
+    foreach ($historyBalls as $b) {
+        $cumulativeRuns += (int)$b['total_runs'];
+        if ($b['is_wicket']) {
+            $cumulativeWickets++;
+        }
+        $graphData[] = [
+            'ball_display' => "{$b['over_number']}.{$b['ball_number']}",
+            'cumulative_runs' => $cumulativeRuns,
+            'wickets' => $cumulativeWickets,
+            'runs_off_this_ball' => (int)$b['total_runs']
+        ];
+    }
+
+    $runsPerOver = [];
+    $overLabels = [];
+    $overRunsTemp = 0;
+    $currentOverNum = 0;
+    foreach ($historyBalls as $b) {
+        if ($b['over_number'] !== $currentOverNum) {
+            $runsPerOver[] = $overRunsTemp;
+            $overLabels[] = "Over " . ($currentOverNum + 1);
+            $overRunsTemp = 0;
+            $currentOverNum = $b['over_number'];
+        }
+        $overRunsTemp += (int)$b['total_runs'];
+    }
+    if (count($historyBalls) > 0) {
+        $runsPerOver[] = $overRunsTemp;
+        $overLabels[] = "Over " . ($currentOverNum + 1);
+    }
+
+    // Target & Required Run Rate calculations for second innings
+    $target = null;
+    $runsNeeded = null;
+    $rrr = 0.00;
+    if ($innings === 2) {
+        $scoreInn1 = get_match_score($match_id, 1);
+        $target = (int)$scoreInn1['total_runs'] + 1;
+        $runsNeeded = $target - (int)$score['total_runs'];
+        
+        $stLimit = $pdo->prepare("SELECT total_overs FROM matches WHERE id = :id");
+        $stLimit->execute([':id' => $match_id]);
+        $matchLimit = $stLimit->fetch();
+        $totalOversLimit = (int)($matchLimit['total_overs'] ?? 20);
+        
+        $ballsCompleted = ($overs * 6) + $balls;
+        $totalBallsLimit = $totalOversLimit * 6;
+        $ballsRemaining = max(0, $totalBallsLimit - $ballsCompleted);
+        
+        if ($ballsRemaining > 0) {
+            $rrr = round(($runsNeeded / $ballsRemaining) * 6, 2);
+        } else {
+            $rrr = $runsNeeded > 0 ? 99.99 : 0.00;
+        }
+    }
+
     $response = [
         'match_id' => $match_id,
         'match_name' => $match['match_name'],
         'status' => $match['status'] ?? 'scheduled',
         'innings' => $innings,
+        'field_setup' => $match['field_setup'] ?? 'normal',
+        'last_ball_details' => $lastBallDetails,
+        'graph_worm' => $graphData,
+        'graph_run_rate' => [
+            'labels' => $overLabels,
+            'runs' => $runsPerOver
+        ],
         'batting_team' => [
             'id' => $battingTeamId,
             'name' => $match['batting_team_name']
@@ -60,7 +152,10 @@ try {
             'total_runs' => (int)$score['total_runs'],
             'wickets' => (int)$score['wickets'],
             'overs' => $oversDisplay,
-            'run_rate' => $runRate
+            'run_rate' => $runRate,
+            'target' => $target,
+            'runs_needed' => $runsNeeded,
+            'required_run_rate' => $rrr
         ],
         'batting_lineup' => $battingLineup,
         'bowling_lineup' => $bowlingLineup,

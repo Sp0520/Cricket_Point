@@ -33,7 +33,8 @@ function ensure_match_columns(PDO $pdo): void
         'bowling_team_id' => 'INT UNSIGNED NULL',
         'status' => "ENUM('scheduled','live','innings_break','completed') NOT NULL DEFAULT 'scheduled'",
         'current_innings' => 'TINYINT NOT NULL DEFAULT 1',
-        'total_overs' => 'INT NOT NULL DEFAULT 20'
+        'total_overs' => 'INT NOT NULL DEFAULT 20',
+        'field_setup' => "VARCHAR(50) NOT NULL DEFAULT 'normal'"
     ];
 
     foreach ($columns as $column => $definition) {
