@@ -56,3 +56,42 @@ function can_access_match_row(array $m): bool
     }
     return isset($m['owner_user_id']) && (int)$m['owner_user_id'] === $oid;
 }
+
+function is_organizer_paid(): bool
+{
+    if (!is_organizer_user()) {
+        return true;
+    }
+    $u = current_user();
+    if ($u === null) {
+        return false;
+    }
+    
+    // Query DB to check fresh status
+    try {
+        $st = db()->prepare('SELECT is_paid_member FROM users WHERE id = :id LIMIT 1');
+        $st->execute([':id' => (int)$u['id']]);
+        $row = $st->fetch();
+        if ($row) {
+            $isPaid = (bool)$row['is_paid_member'];
+            $_SESSION['user']['is_paid_member'] = $isPaid;
+            return $isPaid;
+        }
+    } catch (Throwable $e) {
+    }
+    return !empty($u['is_paid_member']);
+}
+
+function require_organizer_paid(): void
+{
+    require_login();
+    $u = current_user();
+    if ($u === null) {
+        header('Location: login.php');
+        exit;
+    }
+    if (($u['role'] ?? '') === 'organizer' && !is_organizer_paid()) {
+        header('Location: organizer_payment.php');
+        exit;
+    }
+}

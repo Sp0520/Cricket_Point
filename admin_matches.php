@@ -5,6 +5,7 @@ require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/access.php';
 
 require_admin_or_organizer();
+require_organizer_paid();
 
 $pdo = db();
 $err = '';

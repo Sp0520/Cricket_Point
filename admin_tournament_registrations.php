@@ -7,6 +7,7 @@ require_once __DIR__ . '/repo.php';
 require_once __DIR__ . '/access.php';
 
 require_admin_or_organizer();
+require_organizer_paid();
 $pdo = db();
 
 if (is_organizer_user()) {

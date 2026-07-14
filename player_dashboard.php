@@ -192,7 +192,7 @@ require_once __DIR__ . '/header.php';
                       <?= h($t['start_date']) ?>
                       <?= !empty($t['end_date']) ? ' - ' . h($t['end_date']) : '' ?>
                       <?= !empty($t['venue']) ? ' • ' . h($t['venue']) : '' ?>
-                    </div>                    <div class="small cp-muted">Entry fees: $<?= number_format((float)$t['entry_fees'] ?? 0, 2) ?> • Max teams: <?= (int)($t['max_teams'] ?? 0) ?> • Overs: <?= (int)($t['overs_per_match'] ?? 20) ?>, Wickets: <?= (int)($t['wickets_per_team'] ?? 10) ?></div>
+                    </div>                    <div class="small cp-muted">Entry fees: ₹<?= number_format((float)$t['entry_fees'] ?? 0, 2) ?> • Max teams: <?= (int)($t['max_teams'] ?? 0) ?> • Overs: <?= (int)($t['overs_per_match'] ?? 20) ?>, Wickets: <?= (int)($t['wickets_per_team'] ?? 10) ?></div>
                     <?php if (!empty($t['description'])): ?>
                       <div class="small cp-muted"><?= h($t['description']) ?></div>
                     <?php endif; ?>                  </div>

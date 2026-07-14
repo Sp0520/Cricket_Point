@@ -90,6 +90,7 @@ function login_user(array $userRow): void
             ? (int)$userRow['player_id']
             : null,
         'verified' => (bool)($userRow['verified'] ?? false),
+        'is_paid_member' => (bool)($userRow['is_paid_member'] ?? false),
     ];
 }
 

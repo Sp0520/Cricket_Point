@@ -45,6 +45,7 @@ function run_migration(string $migrationFile): bool
 // List of pending migrations to run (in order)
 $migrations = [
     'upgrade_20260402_otp_verification.sql',
+    'upgrade_20260714_payments.sql',
 ];
 
 echo "Running database migrations...\n";

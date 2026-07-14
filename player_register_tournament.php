@@ -51,6 +51,8 @@ $err = '';
 
 try {
     $pdo->beginTransaction();
+    $hasEntryFee = ((float)($t['entry_fees'] ?? 0) > 0);
+    $status = $hasEntryFee ? 'pending' : 'approved';
 
     if ($registrantType === 'player') {
         // If already registered, do nothing.
@@ -72,9 +74,9 @@ try {
 
         $st = $pdo->prepare("
           INSERT INTO tournament_registrations (tournament_id, registrant_type, player_id, status)
-          VALUES (:tid, 'player', :pid, 'approved')
+          VALUES (:tid, 'player', :pid, :status)
         ");
-        $st->execute([':tid' => $tournamentId, ':pid' => $playerId]);
+        $st->execute([':tid' => $tournamentId, ':pid' => $playerId, ':status' => $status]);
     } else {
         // team registration
         $myTeam = fetch_player_team($playerId);
@@ -114,14 +116,21 @@ try {
 
         $st = $pdo->prepare("
           INSERT INTO tournament_registrations (tournament_id, registrant_type, team_id, contact_phone, status)
-          VALUES (:tid, 'team', :teamId, :ph, 'approved')
+          VALUES (:tid, 'team', :teamId, :ph, :status)
         ");
-        $st->execute([':tid' => $tournamentId, ':teamId' => $teamId, ':ph' => $phoneOk]);
+        $st->execute([':tid' => $tournamentId, ':teamId' => $teamId, ':ph' => $phoneOk, ':status' => $status]);
     }
 
+    $registrationId = (int)$pdo->lastInsertId();
     $pdo->commit();
-    header('Location: player_dashboard.php?msg=registered');
-    exit;
+    
+    if ($hasEntryFee) {
+        header('Location: tournament_payment.php?registration_id=' . $registrationId);
+        exit;
+    } else {
+        header('Location: player_dashboard.php?msg=registered');
+        exit;
+    }
 } catch (Throwable $e) {
     if ($pdo->inTransaction()) {
         $pdo->rollBack();

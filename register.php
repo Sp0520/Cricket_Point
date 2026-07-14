@@ -33,8 +33,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $err = 'Please enter a valid mobile number (at least 8 digits).';
     } elseif ($pass !== $pass2) {
         $err = 'Passwords do not match.';
-    } elseif (strlen($pass) < 6) {
-        $err = 'Password must be at least 6 characters.';
+    } elseif (strlen($pass) < 8) {
+        $err = 'Password must be at least 8 characters.';
+    } elseif (!preg_match('/[A-Z]/', $pass)) {
+        $err = 'Password must contain at least one uppercase letter.';
     } else {
         $pdo = db();
         $pdo->beginTransaction();

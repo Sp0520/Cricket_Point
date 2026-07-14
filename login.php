@@ -57,9 +57,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             if (!((bool)($u['verified'] ?? false))) {
                 $_SESSION['otp_pending'] = ['user_id' => (int)$u['id'], 'purpose' => 'login'];
-                $sent = send_user_otp($u, 'login');
-                if (!$sent) {
-                    $err = 'Unable to send OTP. Please try again in a few moments.';
+                if (!send_user_otp($u, 'login')) {
+                    header('Location: ' . url_for('otp_verify.php') . '?msg=not_sent');
+                    exit;
                 } else {
                     header('Location: ' . url_for('otp_verify.php'));
                     exit;

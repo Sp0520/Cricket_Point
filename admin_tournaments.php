@@ -7,6 +7,7 @@ require_once __DIR__ . '/repo.php';
 require_once __DIR__ . '/access.php';
 
 require_admin_or_organizer();
+require_organizer_paid();
 $pdo = db();
 $err = '';
 $ok = '';
@@ -187,7 +188,7 @@ $orgShell = is_organizer_user();
         </div>
 
         <div class="col-12 col-md-6">
-          <label class="form-label">Entry Fees (USD)</label>
+          <label class="form-label">Entry Fees (INR / ₹)</label>
           <input type="number" step="0.01" min="0" class="form-control" name="entry_fees" value="<?= h($_POST['entry_fees'] ?? '0.00') ?>">
         </div>
 
