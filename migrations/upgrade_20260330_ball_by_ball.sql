@@ -1,22 +1,18 @@
--- Ball-by-ball scoring tables + Dream11 points system
--- Run once on existing cricket_points database
+-- upgrade_20260330_ball_by_ball.sql
+ALTER TABLE matches ADD COLUMN batting_team_id INT UNSIGNED NULL;
+ALTER TABLE matches ADD COLUMN bowling_team_id INT UNSIGNED NULL;
+ALTER TABLE matches ADD COLUMN total_overs INT NOT NULL DEFAULT 20;
+ALTER TABLE matches ADD COLUMN status ENUM('setup','live','innings_break','completed') NOT NULL DEFAULT 'setup';
+ALTER TABLE matches ADD COLUMN current_innings TINYINT NOT NULL DEFAULT 1;
 
-ALTER TABLE matches
-  ADD COLUMN IF NOT EXISTS batting_team_id INT UNSIGNED NULL,
-  ADD COLUMN IF NOT EXISTS bowling_team_id INT UNSIGNED NULL,
-  ADD COLUMN IF NOT EXISTS total_overs INT NOT NULL DEFAULT 20,
-  ADD COLUMN IF NOT EXISTS status ENUM('setup','live','innings_break','completed') NOT NULL DEFAULT 'setup',
-  ADD COLUMN IF NOT EXISTS current_innings TINYINT NOT NULL DEFAULT 1;
-
-ALTER TABLE player_match_stats
-  ADD COLUMN IF NOT EXISTS balls_faced INT NOT NULL DEFAULT 0,
-  ADD COLUMN IF NOT EXISTS strike_rate DECIMAL(6,2) NOT NULL DEFAULT 0.00,
-  ADD COLUMN IF NOT EXISTS economy DECIMAL(6,2) NOT NULL DEFAULT 0.00,
-  ADD COLUMN IF NOT EXISTS balls_bowled INT NOT NULL DEFAULT 0,
-  ADD COLUMN IF NOT EXISTS runs_conceded INT NOT NULL DEFAULT 0,
-  ADD COLUMN IF NOT EXISTS innings_number TINYINT NOT NULL DEFAULT 1,
-  ADD COLUMN IF NOT EXISTS is_out TINYINT(1) NOT NULL DEFAULT 0,
-  ADD COLUMN IF NOT EXISTS fantasy_points INT NOT NULL DEFAULT 0;
+ALTER TABLE player_match_stats ADD COLUMN balls_faced INT NOT NULL DEFAULT 0;
+ALTER TABLE player_match_stats ADD COLUMN strike_rate DECIMAL(6,2) NOT NULL DEFAULT 0.00;
+ALTER TABLE player_match_stats ADD COLUMN economy DECIMAL(6,2) NOT NULL DEFAULT 0.00;
+ALTER TABLE player_match_stats ADD COLUMN balls_bowled INT NOT NULL DEFAULT 0;
+ALTER TABLE player_match_stats ADD COLUMN runs_conceded INT NOT NULL DEFAULT 0;
+ALTER TABLE player_match_stats ADD COLUMN innings_number TINYINT NOT NULL DEFAULT 1;
+ALTER TABLE player_match_stats ADD COLUMN is_out TINYINT(1) NOT NULL DEFAULT 0;
+ALTER TABLE player_match_stats ADD COLUMN fantasy_points INT NOT NULL DEFAULT 0;
 
 CREATE TABLE IF NOT EXISTS ball_by_ball (
   id            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
