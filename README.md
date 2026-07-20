@@ -2,6 +2,8 @@
 
 A professional, broadcast-style cricket scoring, live analytics, and fantasy points management platform. This system features an interactive, real-time **3D Cricket Field Simulator** beside a glassmorphism dark-themed scoreboard.
 
+🔗 **Live Link:** [https://cricket-point.onrender.com](https://cricket-point.onrender.com)
+
 ---
 
 ## 🌟 Key Features
