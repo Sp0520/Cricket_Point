@@ -32,7 +32,7 @@ $matches = fetch_matches();
           <span class="badge cp-badge rounded-pill">Match #<?= (int)$m['id'] ?></span>
         </div>
         <hr class="border-secondary my-3">
-        <div class="d-flex justify-content-between align-items-center">
+        <div class="d-flex justify-content-between align-items-center mb-3">
           <div>
             <div class="cp-muted small">Man of the Match</div>
             <div class="fw-semibold"><?= h($m['mom_name'] ?? 'Not decided') ?></div>
@@ -41,6 +41,10 @@ $matches = fetch_matches();
             <div class="cp-muted small">Points</div>
             <div class="fw-bold"><?= (int)($m['man_of_match_points'] ?? 0) ?></div>
           </div>
+        </div>
+        <div class="d-flex justify-content-between align-items-center gap-2">
+          <a class="btn btn-sm btn-outline-light px-3" href="match.php?id=<?= (int)$m['id'] ?>"><i class="fas fa-chart-bar me-1"></i> Stats</a>
+          <a class="btn btn-sm btn-cp px-3" href="match_scoreboard.php?match_id=<?= (int)$m['id'] ?>"><i class="fas fa-satellite-dish me-1"></i> Live Scoreboard</a>
         </div>
       </div>
     </div>

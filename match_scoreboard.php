@@ -759,8 +759,8 @@ function triggerCommentaryLog(ball, striker, bowler) {
     let text = '';
     let category = 'runs';
 
-    const sName = striker.name || 'Batsman';
-    const bName = bowler.name || 'Bowler';
+    const sName = (striker && striker.name) ? striker.name : 'Batsman';
+    const bName = (bowler && bowler.name) ? bowler.name : 'Bowler';
 
     if (ball.is_wicket) {
         category = 'wicket';

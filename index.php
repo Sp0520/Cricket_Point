@@ -138,7 +138,7 @@ require_once __DIR__ . '/header.php';
                   </td>
                   <td class="text-end cp-muted"><?= (int)($m['stats_players'] ?? 0) ?></td>
                   <td class="text-end">
-                    <a class="btn btn-sm btn-outline-success" href="match.php?id=<?= (int)$m['id'] ?>">View</a>
+                    <a class="btn btn-sm btn-cp px-3" href="match_scoreboard.php?match_id=<?= (int)$m['id'] ?>"><i class="fas fa-satellite-dish me-1"></i> Live Scoreboard</a>
                   </td>
                 </tr>
               <?php endforeach; ?>
